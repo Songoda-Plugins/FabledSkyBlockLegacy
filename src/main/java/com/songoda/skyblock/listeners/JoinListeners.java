@@ -1,6 +1,9 @@
 package com.songoda.skyblock.listeners;
 
+import com.destroystokyo.paper.profile.PlayerProfile;
+import com.songoda.core.compatibility.MajorServerVersion;
 import com.songoda.skyblock.SkyBlock;
+import com.songoda.skyblock.api.SkyBlockAPI;
 import com.songoda.skyblock.cooldown.CooldownManager;
 import com.songoda.skyblock.cooldown.CooldownType;
 import com.songoda.skyblock.island.Island;
@@ -26,6 +29,11 @@ import java.lang.reflect.Method;
 
 public class JoinListeners implements Listener {
     private final SkyBlock plugin;
+
+    private static final String[] STEVE_TEXTURE = {
+            "K9P4tCIENYbNpDuEuuY0shs1x7iIvwXi4jUUVsATJfwsAIZGS+9OZ5T2HB0tWBoxRvZNi73Vr+syRdvTLUWPusVXIg+2fhXmQoaNEtnQvQVGQpjdQP0TkZtYG8PbvRxE6Z75ddq+DVx/65OSNHLWIB/D+Rg4vINh4ukXNYttn9QvauDHh1aW7/IkIb1Bc0tLcQyqxZQ3mdglxJfgIerqnlA++Lt7TxaLdag4y1NhdZyd3OhklF5B0+B9zw/qP8QCzsZU7VzJIcds1+wDWKiMUO7+60OSrIwgE9FPamxOQDFoDvz5BOULQEeNx7iFMB+eBYsapCXpZx0zf1bduppBUbbVC9wVhto/J4tc0iNyUq06/esHUUB5MHzdJ0Y6IZJAD/xIw15OLCUH2ntvs8V9/cy5/n8u3JqPUM2zhUGeQ2p9FubUGk4Q928L56l3omRpKV+5QYTrvF+AxFkuj2hcfGQG3VE2iYZO6omXe7nRPpbJlHkMKhE8Xvd1HP4PKpgivSkHBoZ92QEUAmRzZydJkp8CNomQrZJf+MtPiNsl/Q5RQM+8CQThg3+4uWptUfP5dDFWOgTnMdA0nIODyrjpp+bvIJnsohraIKJ7ZDnj4tIp4ObTNKDFC/8j8JHz4VCrtr45mbnzvB2DcK8EIB3JYT7ElJTHnc5BKMyLy5SKzuw=",
+            "eyJ0aW1lc3RhbXAiOjE1MjkyNTg0MTE4NDksInByb2ZpbGVJZCI6Ijg2NjdiYTcxYjg1YTQwMDRhZjU0NDU3YTk3MzRlZWQ3IiwicHJvZmlsZU5hbWUiOiJTdGV2ZSIsInNpZ25hdHVyZVJlcXVpcmVkIjp0cnVlLCJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGMxYzc3Y2U4ZTU0OTI1YWI1ODEyNTQ0NmVjNTNiMGNkZDNkMGNhM2RiMjczZWI5MDhkNTQ4Mjc4N2VmNDAxNiJ9LCJDQVBFIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYjc2N2Q0ODMyNWVhNTMyNDU2MTQwNmI4YzgyYWJiZDRlMjc1NWYxMTE1M2NkODVhYjA1NDVjYzIifX19"
+    };
 
     public JoinListeners(SkyBlock plugin) {
         this.plugin = plugin;
@@ -71,19 +79,24 @@ public class JoinListeners implements Listener {
             playerDataManager.loadPlayerData(player);
 
             if (playerDataManager.hasPlayerData(player)) {
-                String[] playerTexture;
-
+                String[] playerTexture = STEVE_TEXTURE;
                 try {
-                    Object entityPlayer = player.getClass().getMethod("getHandle").invoke(player);
-                    Method getProfileMethod = entityPlayer.getClass().getMethod("getProfile");
-                    GameProfile gameProfile = (GameProfile) getProfileMethod.invoke(entityPlayer);
-                    Property property = gameProfile.getProperties().get("textures").iterator().next();
-                    playerTexture = new String[]{property.getSignature(), property.getValue()};
-                } catch (Exception e) {
-                    playerTexture = new String[]{
-                            "K9P4tCIENYbNpDuEuuY0shs1x7iIvwXi4jUUVsATJfwsAIZGS+9OZ5T2HB0tWBoxRvZNi73Vr+syRdvTLUWPusVXIg+2fhXmQoaNEtnQvQVGQpjdQP0TkZtYG8PbvRxE6Z75ddq+DVx/65OSNHLWIB/D+Rg4vINh4ukXNYttn9QvauDHh1aW7/IkIb1Bc0tLcQyqxZQ3mdglxJfgIerqnlA++Lt7TxaLdag4y1NhdZyd3OhklF5B0+B9zw/qP8QCzsZU7VzJIcds1+wDWKiMUO7+60OSrIwgE9FPamxOQDFoDvz5BOULQEeNx7iFMB+eBYsapCXpZx0zf1bduppBUbbVC9wVhto/J4tc0iNyUq06/esHUUB5MHzdJ0Y6IZJAD/xIw15OLCUH2ntvs8V9/cy5/n8u3JqPUM2zhUGeQ2p9FubUGk4Q928L56l3omRpKV+5QYTrvF+AxFkuj2hcfGQG3VE2iYZO6omXe7nRPpbJlHkMKhE8Xvd1HP4PKpgivSkHBoZ92QEUAmRzZydJkp8CNomQrZJf+MtPiNsl/Q5RQM+8CQThg3+4uWptUfP5dDFWOgTnMdA0nIODyrjpp+bvIJnsohraIKJ7ZDnj4tIp4ObTNKDFC/8j8JHz4VCrtr45mbnzvB2DcK8EIB3JYT7ElJTHnc5BKMyLy5SKzuw=",
-                            "eyJ0aW1lc3RhbXAiOjE1MjkyNTg0MTE4NDksInByb2ZpbGVJZCI6Ijg2NjdiYTcxYjg1YTQwMDRhZjU0NDU3YTk3MzRlZWQ3IiwicHJvZmlsZU5hbWUiOiJTdGV2ZSIsInNpZ25hdHVyZVJlcXVpcmVkIjp0cnVlLCJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGMxYzc3Y2U4ZTU0OTI1YWI1ODEyNTQ0NmVjNTNiMGNkZDNkMGNhM2RiMjczZWI5MDhkNTQ4Mjc4N2VmNDAxNiJ9LCJDQVBFIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYjc2N2Q0ODMyNWVhNTMyNDU2MTQwNmI4YzgyYWJiZDRlMjc1NWYxMTE1M2NkODVhYjA1NDVjYzIifX19"};
-                }
+                    if (MajorServerVersion.isServerVersionAtLeast(MajorServerVersion.V1_21) && SkyBlockAPI.getImplementation().isPaper()) {
+                        PlayerProfile playerProfile = player.getPlayerProfile();
+                        for (com.destroystokyo.paper.profile.ProfileProperty property : playerProfile.getProperties()) {
+                            if ("textures".equals(property.getName())) {
+                                playerTexture = new String[]{property.getSignature(), property.getValue()};
+                                break;
+                            }
+                        }
+                    } else {
+                        Object entityPlayer = player.getClass().getMethod("getHandle").invoke(player);
+                        Method getProfileMethod = entityPlayer.getClass().getMethod("getProfile");
+                        GameProfile gameProfile = (GameProfile) getProfileMethod.invoke(entityPlayer);
+                        Property property = gameProfile.getProperties().get("textures").iterator().next();
+                        playerTexture = new String[]{property.getSignature(), property.getValue()};
+                    }
+                } catch (Exception ignored) {}
 
                 PlayerData playerData = playerDataManager.getPlayerData(player);
                 playerData.setTexture(playerTexture[0], playerTexture[1]);
